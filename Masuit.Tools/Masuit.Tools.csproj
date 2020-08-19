@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\SDKPulishNuget.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -46,19 +47,9 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AngleSharp, Version=0.14.0.0, Culture=neutral, PublicKeyToken=e83494dcdc6d31ea, processorArchitecture=MSIL">
-      <HintPath>..\packages\AngleSharp.0.14.0\lib\net461\AngleSharp.dll</HintPath>
-    </Reference>
     <Reference Include="DnsClient, Version=1.3.2.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
       <HintPath>..\packages\DnsClient.1.3.2\lib\net45\DnsClient.dll</HintPath>
     </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.11.24.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlAgilityPack.1.11.24\lib\Net45\HtmlAgilityPack.dll</HintPath>
-    </Reference>
-    <Reference Include="HtmlSanitizer, Version=5.0.0.0, Culture=neutral, PublicKeyToken=61c49a1a9e79cc28, processorArchitecture=MSIL">
-      <HintPath>..\packages\HtmlSanitizer.5.0.343\lib\net46\HtmlSanitizer.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
@@ -75,13 +66,11 @@
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Management" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
@@ -110,70 +99,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Database\DataTableBuilder.cs" />
-    <Compile Include="Database\DataTableHelper.cs" />
-    <Compile Include="DateTimeExt\ChineseCalendar.cs" />
-    <Compile Include="Database\DataExt.cs" />
-    <Compile Include="DateTimeExt\DateTimeHelper.cs" />
-    <Compile Include="DateTimeExt\DateUtil.cs" />
-    <Compile Include="DateTimeExt\DateInfoStruct.cs" />
-    <Compile Include="DateTimeExt\TimeHelper.cs" />
-    <Compile Include="DateTimeExt\WeekHolidayStruct.cs" />
-    <Compile Include="Files\WinrarHelper.cs" />
-    <Compile Include="Extensions.cs" />
     <Compile Include="Files\SevenZipCompressor.cs" />
     <Compile Include="Files\ExtensionAttach.cs" />
-    <Compile Include="Files\INIFile.cs" />
-    <Compile Include="Hardware\CpuInfo.cs" />
-    <Compile Include="Hardware\CPU_INFO.cs" />
-    <Compile Include="Hardware\DiskData.cs" />
-    <Compile Include="Hardware\MemoryInfo.cs" />
-    <Compile Include="Hardware\NetData.cs" />
-    <Compile Include="Hardware\RamInfo.cs" />
-    <Compile Include="Hardware\SystemtimeInfo.cs" />
-    <Compile Include="Hardware\Unit.cs" />
-    <Compile Include="Html\HtmlTools.cs" />
-    <Compile Include="Linq\LinqExtension.cs" />
-    <Compile Include="Logging\LogInfo.cs" />
-    <Compile Include="Logging\LogLevel.cs" />
-    <Compile Include="Logging\LogManager.cs" />
-    <Compile Include="Mapping\Copier.cs" />
-    <Compile Include="Mapping\Core\CreateConfig.cs" />
-    <Compile Include="Mapping\Core\MapperConfiguration.cs" />
-    <Compile Include="Mapping\Core\MapperConfigurationBase.cs" />
-    <Compile Include="Mapping\Core\MapperConfigurationCollectionContainer.cs" />
-    <Compile Include="Mapping\Core\PropertiesNotMapped.cs" />
-    <Compile Include="Mapping\Core\TypePairMapper.cs" />
-    <Compile Include="Mapping\Exceptions\MapperExceptionBase.cs" />
-    <Compile Include="Mapping\Exceptions\MapperExistException.cs" />
-    <Compile Include="Mapping\Exceptions\MapperNotInitializedException.cs" />
-    <Compile Include="Mapping\Exceptions\NoActionAfterMappingException.cs" />
-    <Compile Include="Mapping\Exceptions\NoFoundMapperException.cs" />
-    <Compile Include="Mapping\Exceptions\NotSameTypePropertyException.cs" />
-    <Compile Include="Mapping\Exceptions\PropertyNoExistException.cs" />
-    <Compile Include="Mapping\Exceptions\ReadOnlyPropertyException.cs" />
-    <Compile Include="Mapping\ExpressionCpoier.cs" />
-    <Compile Include="Mapping\ExpressionMapper.cs" />
-    <Compile Include="Mapping\Extensions\ExpressionExtentions.cs" />
-    <Compile Include="Mapping\Extensions\QueryableExtentions.cs" />
-    <Compile Include="Mapping\Helper\MapperHelper.cs" />
-    <Compile Include="Mapping\Helper\TypeSystem.cs" />
-    <Compile Include="Mapping\Visitor\ChangParameterExpressionVisitor.cs" />
-    <Compile Include="Mapping\Visitor\ConverterExpressionVisitor.cs" />
-    <Compile Include="Mapping\Visitor\MapperExpressionVisitor.cs" />
-    <Compile Include="Mapping\Visitor\PropertiesVisitor.cs" />
-    <Compile Include="Maths\RadarChartEngine.cs" />
-    <Compile Include="Maths\Point2D.cs" />
-    <Compile Include="Maths\RadarChart.cs" />
-    <Compile Include="Maths\Vector2D.cs" />
-    <Compile Include="Media\ImageWatermarker.cs" />
-    <Compile Include="Media\ThumbnailCutMode.cs" />
-    <Compile Include="Media\WatermarkPosition.cs" />
-    <Compile Include="Models\BaiduIP.cs" />
-    <Compile Include="Models\IspInfo.cs" />
-    <Compile Include="Models\PagedList.cs" />
-    <Compile Include="Models\PhysicsAddress.cs" />
-    <Compile Include="Models\TaobaoIP.cs" />
     <Compile Include="Mvc\ActionResults\ResumeActionResultBase.cs" />
     <Compile Include="Mvc\ActionResults\ResumeFileContentResult.cs" />
     <Compile Include="Mvc\ActionResults\ResumeFilePathResult.cs" />
@@ -190,66 +117,28 @@
     <Compile Include="Mvc\Mime\MimeMappingItem.cs" />
     <Compile Include="Net\CacheHelper.cs" />
     <Compile Include="Net\CookieHelper.cs" />
-    <Compile Include="Net\FtpClient.cs" />
-    <Compile Include="Net\MultiThreadDownloader.cs" />
-    <Compile Include="Net\PartialDownloader.cs" />
-    <Compile Include="Net\SocketClient.cs" />
+    <Compile Include="Net\WebExtension.cs" />
+    <Compile Include="NoSQL\RedisConnectionManager.cs" />
     <Compile Include="NoSQL\RedisHelper.cs" />
-    <Compile Include="RandomSelector\MultipleSelector.cs" />
-    <Compile Include="RandomSelector\SelectorBase.cs" />
-    <Compile Include="RandomSelector\SingleSelector.cs" />
-    <Compile Include="RandomSelector\Extensions.cs" />
-    <Compile Include="RandomSelector\SelectorOptions.cs" />
-    <Compile Include="RandomSelector\WeightedItem.cs" />
-    <Compile Include="RandomSelector\WeightedSelector.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\ClassHelper.cs" />
     <Compile Include="Reflection\ReflectHelper.cs" />
     <Compile Include="Reflection\ReflectionUtil.cs" />
-    <Compile Include="Security\Crc32.cs" />
-    <Compile Include="Security\Crc64.cs" />
-    <Compile Include="Security\Encrypt.cs" />
-    <Compile Include="Files\FileExt.cs" />
-    <Compile Include="Hardware\SystemInfo.cs" />
-    <Compile Include="Media\ImageUtilities.cs" />
-    <Compile Include="Models\Email.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Security\HashEncode.cs" />
-    <Compile Include="Security\RSA.cs" />
-    <Compile Include="Security\RSACrypt.cs" />
-    <Compile Include="Security\RsaPem.cs" />
-    <Compile Include="Strings\ChineseString.cs" />
-    <Compile Include="Strings\NumberFormater.cs" />
-    <Compile Include="Strings\Template.cs" />
-    <Compile Include="Systems\ConcurrentLimitedQueue.cs" />
-    <Compile Include="Systems\Disposable.cs" />
-    <Compile Include="Systems\HiPerfTimer.cs" />
-    <Compile Include="Systems\LimitedQueue.cs" />
-    <Compile Include="Strings\ValidateCode.cs" />
-    <Compile Include="Net\WebExtension.cs" />
-    <Compile Include="Systems\EnumExt.cs" />
     <Compile Include="Systems\Lock.cs" />
     <Compile Include="Systems\RedisLock.cs" />
-    <Compile Include="Systems\SnowFlake.cs" />
-    <Compile Include="Systems\StopwatchHelper.cs" />
-    <Compile Include="Validator\ComplexPassword.cs" />
-    <Compile Include="Validator\IsEmailAttribute.cs" />
-    <Compile Include="Validator\IsIPAddressAttribute.cs" />
-    <Compile Include="Validator\IsPhoneAttribute.cs" />
-    <Compile Include="Validator\MaxValueAttribute.cs" />
-    <Compile Include="Validator\MinValueAttribute.cs" />
-    <Compile Include="Win32\Windows.cs" />
-    <Compile Include="Win32\WindowsCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="package.nuspec" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Masuit.Tools.Abstractions\Masuit.Tools.Abstractions.csproj">
+      <Project>{74e7c0a2-499d-408f-a2e4-08878700c2de}</Project>
+      <Name>Masuit.Tools.Abstractions</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
