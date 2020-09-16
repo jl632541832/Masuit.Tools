@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,73 +36,10 @@ namespace Masuit.Tools
         /// <typeparam name="T"></typeparam>
         public static async void ForEachAsync<T>(this IEnumerable<T> objs, Action<T> action)
         {
-            await Task.Run(() =>
-            {
-                Parallel.ForEach(objs, action);
-            });
+            await Task.Run(() => Parallel.ForEach(objs, action));
         }
 
         #endregion AsyncForEach
-
-        #region To方法
-
-        /// <summary>
-        /// 【内部方法】集合接口转具体实现
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <typeparam name="TArray"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="selector"></param>
-        /// <param name="converter"></param>
-        /// <param name="defaultValueFunc">当<paramref name="source"/>为<see cref="null"/>时，会调用此委托生成默认值</param>
-        /// <returns></returns>
-        private static TArray IEnumerableBaseTo<TSource, TResult, TArray>(
-          IEnumerable<TSource> source,
-          Func<TSource, TResult> selector,
-          Func<IEnumerable<TResult>, TArray> converter,
-          Func<TArray> defaultValueFunc)
-        {
-            selector.CheckNullWithException(nameof(selector));
-
-            return source == null ? defaultValueFunc() : converter(source.Select(selector));
-        }
-
-        /// <summary>
-        /// Select+ToList的组合版本
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="selector"></param>
-        /// <param name="defaultValue">当<paramref name="source"/>为<see cref="null"/>时，返回的值.默认值为:0长度的<see cref="List{T}"/></param>
-        /// <returns></returns>
-        public static List<TResult> ToList<TSource, TResult>(
-            this IEnumerable<TSource> source,
-            Func<TSource, TResult> selector,
-            List<TResult>? defaultValue = null)
-        {
-            return IEnumerableBaseTo(source, selector, Enumerable.ToList, () => defaultValue ?? new List<TResult>());
-        }
-
-        /// <summary>
-        /// Select+ToList的组合版本(异步)
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="selector"></param>
-        /// <param name="defaultValue">当<paramref name="source"/>为<see cref="null"/>时，返回的值.默认值为:0长度的<see cref="List{T}"/></param>
-        /// <returns></returns>
-        public static Task<List<TResult>> ToListAsync<TSource, TResult>(
-            this IEnumerable<TSource> source,
-            Func<TSource, TResult> selector,
-            List<TResult>? defaultValue = null)
-        {
-            return Task.Run(() => ToList(source, selector, defaultValue));
-        }
-
-        #endregion To方法
 
         /// <summary>
         /// 按字段去重
@@ -138,10 +76,7 @@ namespace Masuit.Tools
         /// <param name="this"></param>
         /// <param name="predicate"></param>
         /// <param name="values"></param>
-        public static void AddRangeIf<T>(
-            this ICollection<T> @this,
-            Func<T, bool> predicate,
-            params T[] values)
+        public static void AddRangeIf<T>(this ICollection<T> @this, Func<T, bool> predicate, params T[] values)
         {
             foreach (var obj in values)
             {
@@ -192,15 +127,15 @@ namespace Masuit.Tools
         /// <param name="value">值</param>
         public static void InsertAfter<T>(this IList<T> list, Func<T, bool> condition, T value)
         {
-            foreach (var item in list.Select((o, i) => new { Value = o, Index = i }).Where(p => condition(p.Value)).OrderByDescending(p => p.Index))
+            foreach (var item in list.Select((item, index) => new { item, index }).Where(p => condition(p.item)).OrderByDescending(p => p.index))
             {
-                if (item.Index + 1 == list.Count)
+                if (item.index + 1 == list.Count)
                 {
                     list.Add(value);
                 }
                 else
                 {
-                    list.Insert(item.Index + 1, value);
+                    list.Insert(item.index + 1, value);
                 }
             }
         }
@@ -214,7 +149,7 @@ namespace Masuit.Tools
         /// <param name="value">值</param>
         public static void InsertAfter<T>(this IList<T> list, int index, T value)
         {
-            foreach (var item in list.Select((o, i) => new { Value = o, Index = i }).Where(p => p.Index == index).OrderByDescending(p => p.Index))
+            foreach (var item in list.Select((v, i) => new { Value = v, Index = i }).Where(p => p.Index == index).OrderByDescending(p => p.Index))
             {
                 if (item.Index + 1 == list.Count)
                 {
@@ -225,6 +160,21 @@ namespace Masuit.Tools
                     list.Insert(item.Index + 1, value);
                 }
             }
+        }
+
+        /// <summary>
+        /// 转HashSet
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static HashSet<TResult> ToHashSet<T, TResult>(this IEnumerable<T> source, Func<T, TResult> selector)
+        {
+            var set = new HashSet<TResult>();
+            set.UnionWith(source.Select(selector));
+            return set;
         }
     }
 }
