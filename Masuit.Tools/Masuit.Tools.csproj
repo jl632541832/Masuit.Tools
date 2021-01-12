@@ -263,9 +263,6 @@
     <Compile Include="..\Masuit.Tools.Abstractions\RandomSelector\WeightedSelector.cs">
       <Link>RandomSelector\WeightedSelector.cs</Link>
     </Compile>
-    <Compile Include="..\Masuit.Tools.Abstractions\Reflection\ReflectHelper.cs">
-      <Link>Reflection\ReflectHelper.cs</Link>
-    </Compile>
     <Compile Include="..\Masuit.Tools.Abstractions\Reflection\ReflectionUtil.cs">
       <Link>Reflection\ReflectionUtil.cs</Link>
     </Compile>
@@ -402,7 +399,7 @@
       <Version>1.11.29</Version>
     </PackageReference>
     <PackageReference Include="HtmlSanitizer">
-      <Version>5.0.355</Version>
+      <Version>5.0.372</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.Mvc">
       <Version>5.2.7</Version>
