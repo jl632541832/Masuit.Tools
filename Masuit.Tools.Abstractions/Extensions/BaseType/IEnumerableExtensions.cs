@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Masuit.Tools
 {
     public static partial class IEnumerableExtensions
     {
-        #region SyncForEach
-
         /// <summary>
         /// 遍历IEnumerable
         /// </summary>
@@ -24,22 +24,61 @@ namespace Masuit.Tools
             }
         }
 
-        #endregion SyncForEach
-
-        #region AsyncForEach
-
         /// <summary>
-        /// 遍历IEnumerable
+        /// 异步foreach
         /// </summary>
-        /// <param name="objs"></param>
-        /// <param name="action">回调方法</param>
         /// <typeparam name="T"></typeparam>
-        public static async void ForEachAsync<T>(this IEnumerable<T> objs, Action<T> action)
+        /// <param name="source"></param>
+        /// <param name="maxParallelCount">并行线程数</param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static async Task ForeachAsync<T>(this IEnumerable<T> source, int maxParallelCount, Func<T, Task> action)
         {
-            await Task.Run(() => Parallel.ForEach(objs, action));
+            if (source.Any())
+            {
+                using SemaphoreSlim completeSemphoreSlim = new(1);
+                using SemaphoreSlim taskCountLimitsemaphoreSlim = new(maxParallelCount);
+                await completeSemphoreSlim.WaitAsync();
+                int runningtaskCount = source.Count();
+
+                foreach (var item in source)
+                {
+                    await taskCountLimitsemaphoreSlim.WaitAsync();
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await action(item).ContinueWith(_ =>
+                            {
+                                Interlocked.Decrement(ref runningtaskCount);
+                                if (runningtaskCount == 0)
+                                {
+                                    completeSemphoreSlim.Release();
+                                }
+                            });
+                        }
+                        finally
+                        {
+                            taskCountLimitsemaphoreSlim.Release();
+                        }
+                    });
+                }
+
+                await completeSemphoreSlim.WaitAsync();
+            }
         }
 
-        #endregion AsyncForEach
+        /// <summary>
+        /// 异步foreach
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static Task ForeachAsync<T>(this IEnumerable<T> source, Func<T, Task> action)
+        {
+            return ForeachAsync(source, source.Count(), action);
+        }
 
         /// <summary>
         /// 按字段去重
@@ -175,6 +214,238 @@ namespace Masuit.Tools
             var set = new HashSet<TResult>();
             set.UnionWith(source.Select(selector));
             return set;
+        }
+
+        /// <summary>
+        /// 异步Select
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static Task<TResult[]> SelectAsync<T, TResult>(this IEnumerable<T> source, Func<T, Task<TResult>> selector)
+        {
+            return Task.WhenAll(source.Select(selector));
+        }
+
+        /// <summary>
+        /// 异步Select
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static Task<TResult[]> SelectAsync<T, TResult>(this IEnumerable<T> source, Func<T, int, Task<TResult>> selector)
+        {
+            return Task.WhenAll(source.Select(selector));
+        }
+
+        /// <summary>
+        /// 异步For
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static Task ForAsync<T>(this IEnumerable<T> source, Func<T, int, Task> selector)
+        {
+            return Task.WhenAll(source.Select(selector));
+        }
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static TResult MaxOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) => source.Select(selector).DefaultIfEmpty().Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TResult MaxOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static TSource MaxOrDefault<TSource>(this IQueryable<TSource> source) => source.DefaultIfEmpty().Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TSource MaxOrDefault<TSource>(this IQueryable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector) => source.Select(selector).DefaultIfEmpty().Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static TSource MaxOrDefault<TSource>(this IEnumerable<TSource> source) => source.DefaultIfEmpty().Max();
+
+        /// <summary>
+        /// 取最大值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TSource MaxOrDefault<TSource>(this IEnumerable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Max();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static TResult MinOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) => source.Select(selector).DefaultIfEmpty().Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TResult MinOrDefault<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static TSource MinOrDefault<TSource>(this IQueryable<TSource> source) => source.DefaultIfEmpty().Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TSource MinOrDefault<TSource>(this IQueryable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static TResult MinOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector) => source.Select(selector).DefaultIfEmpty().Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TResult MinOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, TResult defaultValue) => source.Select(selector).DefaultIfEmpty(defaultValue).Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static TSource MinOrDefault<TSource>(this IEnumerable<TSource> source) => source.DefaultIfEmpty().Min();
+
+        /// <summary>
+        /// 取最小值
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        public static TSource MinOrDefault<TSource>(this IEnumerable<TSource> source, TSource defaultValue) => source.DefaultIfEmpty(defaultValue).Min();
+
+        /// <summary>
+        /// 标准差
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        public static TResult StandardDeviation<T, TResult>(this IEnumerable<T> source, Func<T, TResult> selector) where TResult : IConvertible
+        {
+            return StandardDeviation(source.Select(t => selector(t).ConvertTo<double>())).ConvertTo<TResult>();
+        }
+
+        /// <summary>
+        /// 标准差
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static T StandardDeviation<T>(this IEnumerable<T> source) where T : IConvertible
+        {
+            return StandardDeviation(source.Select(t => t.ConvertTo<double>())).ConvertTo<T>();
+        }
+
+        /// <summary>
+        /// 标准差
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static double StandardDeviation(this IEnumerable<double> source)
+        {
+            double result = 0;
+            int count = source.Count();
+            if (count > 1)
+            {
+                double avg = source.Average();
+                double sum = source.Sum(d => (d - avg) * (d - avg));
+                result = Math.Sqrt(sum / count);
+            }
+
+            return result;
         }
     }
 }
