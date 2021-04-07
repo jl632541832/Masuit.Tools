@@ -66,6 +66,8 @@ string localUsedIp = SystemInfo.GetLocalUsedIP();// 获取本机当前正在使�
 IList<string> macAddress = SystemInfo.GetMacAddress();// 获取本机所有网卡mac地址
 string osVersion = SystemInfo.GetOsVersion();// 获取操作系统版本
 RamInfo ramInfo = SystemInfo.GetRamInfo();// 获取内存信息
+var cpuSN=SystemInfo.GetCpuInfo()[0].SerialNumber; // CPU序列号
+var driveSN=SystemInfo.GetDiskInfo()[0].SerialNumber; // 硬盘序列号
 ```
 ### 3.大文件操作
 ```csharp
@@ -232,7 +234,7 @@ var list = new List<MyClass>()
         Age = 28
     }
 };
-var table = list.Select(c => new{姓名=c.Name,年龄=c.Age}).ToList().ToDataTable();// 将自动填充列姓名和年龄
+var table = list.Select(c => new{姓名=c.Name,年龄=c.Age}).ToDataTable();// 将自动填充列姓名和年龄
 ```
 ### 14.文件压缩解压
 .NET Framework
@@ -587,15 +589,16 @@ table.AddIdentityColumn(); //给DataTable增加一个自增列
 table.HasRows(); // 检查DataTable 是否有数据行
 table.ToList<T>(); // datatable转List
 var set = list.ToHashSet(s=>s.Name);// 转HashSet
+var cts = new CancellationTokenSource(100); //取消口令
 await list.ForeachAsync(async i=>{
     await Task.Delay(100);
     Console.WriteLine(i);
-}); // 异步foreach
+},cts.Token); // 异步foreach
 
 await list.ForAsync(async (item,index)=>{
     await Task.Delay(100);
     Console.WriteLine(item+"_"+index);
-}); // 异步for，带索引编号
+},cts.Token); // 异步for，带索引编号
 await list.SelectAsync(async i=>{
     await Task.Delay(100);
     return i*10;
@@ -612,6 +615,9 @@ var max=list.MinOrDefault(); // 取最小值，当集合为空的时候不会报
 var max=list.MinOrDefault(selector); // 取最小值，当集合为空的时候不会报错
 var max=list.MinOrDefault(selector,default); // 取最小值，当集合为空的时候不会报错
 var stdDev=list.Select(s=>s.ConvertTo<int>()).StandardDeviation(); // 求标准差
+
+var pages=queryable.ToPagedList(1,10); // 分页查询
+var pages=await queryable.ToPagedListAsync(1,10); // 分页查询
 ```
 ### 37.Mime类型
 ```csharp
@@ -647,6 +653,7 @@ stream.ToArray(); // 任意流转换成二进制数组
 1.23.ConvertTo<int>(); // 小数转int
 1.23.ConvertTo<T>(); // 小数转T基本类型
 bool b=1.23.TryConvertTo<T>(out result); // 小数转T基本类型
+var num=1.2345.ToDecimal(2); //转decimal并保留两位小数
 ```
 ### 41.简繁转换
 ```csharp
@@ -683,6 +690,9 @@ tree.IsRoot(); // 是否是根节点
 tree.IsLeaf(); // 是否是叶子节点
 tree.Level(); // 所处深度/层级
 tree.Path(); // 全路径
+
+var tree=list.ToTree(c => c.Id, c => c.Pid);//继承自ITreeParent<T>, ITreeChildren<T>的集合转换成树形结构
+var tree=list.ToTreeGeneral(c => c.Id, c => c.Pid);//一般的集合转换成树形结构
 ```
 
 # Asp.Net MVC和Asp.Net Core的支持断点续传和多线程下载的ResumeFileResult
