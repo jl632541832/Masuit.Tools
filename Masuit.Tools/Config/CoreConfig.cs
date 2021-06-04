@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace Masuit.Tools.Core.Config
+namespace Masuit.Tools.Config
 {
     public static class ConfigHelper
     {

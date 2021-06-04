@@ -1,6 +1,6 @@
 # Masuit.Tools
 [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE) [![nuget](https://img.shields.io/nuget/v/Masuit.Tools.Core.svg)](https://www.nuget.org/packages/Masuit.Tools.Core) [![nuget](https://img.shields.io/nuget/dt/Masuit.Tools.Core.svg)](https://www.nuget.org/packages/Masuit.Tools.Core) <a href="https://gitee.com/masuit/Masuit.Tools"><img src="https://gitee.com/static/images/logo-black.svg" height="24"></a> <a href="https://github.com/ldqk/Masuit.Tools"><img src="https://p.pstatp.com/origin/13841000102b8e2ba20b2" height="24"></a>  
-包含一些常用的操作类，大都是静态类，加密解密，反射操作，动态编译，权重随机筛选算法，简繁转换，分布式短id，表达式树，linq扩展，文件压缩，多线程下载和FTP客户端，硬件信息，字符串扩展方法，日期时间扩展操作，中国农历，大文件拷贝，图像裁剪，验证码，断点续传，实体映射、集合扩展等常用封装。  
+包含一些常用的操作类，大都是静态类，加密解密，反射操作，动态编译，权重随机筛选算法，简繁转换，分布式短id，表达式树，linq扩展，文件压缩，多线程下载和FTP客户端，硬件信息，字符串扩展方法，日期时间扩展操作，中国农历，大文件拷贝，图像裁剪，验证码，断点续传，实体映射、集合扩展等常用封装。**诸多功能集一身，代码量不到1MB！**  
 [官网教程](https://masuit.com/55)  
 
 ⭐⭐⭐喜欢这个项目的话就Star、Fork、Follow素质三连关♂注一下吧⭐⭐⭐  
@@ -20,11 +20,16 @@
 SDK：.Net Core 3.1.0及以上版本
 
 ## 安装程序包
+.NET Framework 4.5特供版  
+`.NET Framework 4.5专用版本，相比4.6.1及.NET Core的版本，阉割了Redis、HTML、文件压缩、ASP.NET扩展、硬件监测、Session扩展等功能。`
+```shell
+PM> Install-Package Masuit.Tools.Net45
+```
 .NET Framework ≥4.6.1
 ```shell
 PM> Install-Package Masuit.Tools.Net
 ```
-.NET Core 2.x/3.x
+.NET Core 2.1以上或.NET5
 ```shell
 PM> Install-Package Masuit.Tools.Core
 ```
@@ -40,7 +45,7 @@ public Startup(IConfiguration configuration)
 }
 ```
 ## 特色功能示例代码
-### 1.检验字符串是否是Email、手机号、URL、IP地址、身份证号
+### 1.检验字符串是否是Email、手机号、URL、IP地址、身份证号等
 ```csharp
 bool isEmail="3444764617@qq.com".MatchEmail(); // 可在appsetting.json中添加EmailDomainWhiteList和EmailDomainBlockList配置邮箱域名黑白名单，逗号分隔，如"EmailDomainBlockList": "^\\w{1,5}@qq.com,^\\w{1,5}@163.com,^\\w{1,5}@gmail.com,^\\w{1,5}@outlook.com",
 bool isInetAddress = "114.114.114.114".MatchInetAddress();
@@ -310,6 +315,9 @@ mtd.TotalProgressChanged+=(sender, e) =>
 mtd.FileMergeProgressChanged+=(sender, e) =>
 {
     Console.WriteLine("下载完成");
+};
+mtd.FileMergedComplete+=(sender,e)=>{
+    Console.WriteLine("文件合并完成");
 };
 mtd.Start();//开始下载
 //mtd.Pause(); // 暂停下载
@@ -693,6 +701,17 @@ tree.Path(); // 全路径
 
 var tree=list.ToTree(c => c.Id, c => c.Pid);//继承自ITreeParent<T>, ITreeChildren<T>的集合转换成树形结构
 var tree=list.ToTreeGeneral(c => c.Id, c => c.Pid);//一般的集合转换成树形结构
+```
+### 45.Excel导出
+需要额外依赖包：Masuit.Tools.Excel
+```csharp
+var stream=list.Select(item=>new{
+    姓名=item.Name,
+    年龄=item.Age,
+    item.Gender,
+    Avatar=Image.FromStream(filestream) //图片列
+}).ToDataTable().ToExcel("Sheet1"); //自定义列名导出
+var stream=list.ToDataTable().ToExcel("Sheet1");//默认字段名作为列名导出
 ```
 
 # Asp.Net MVC和Asp.Net Core的支持断点续传和多线程下载的ResumeFileResult

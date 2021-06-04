@@ -84,6 +84,33 @@ namespace Masuit.Tools.Security
             return ret.ToString();
         }
 
+        /// <summary> 
+        /// 加密字符串
+        /// 加密密钥必须为8位
+        /// </summary> 
+        /// <param name="strText">被加密的字符串</param>
+        /// <param name="desKey"></param>
+        /// <param name="desIV"></param>
+        /// <returns>加密后的数据</returns> 
+        public static string DesEncrypt(this string strText, byte[] desKey, byte[] desIV)
+        {
+            StringBuilder ret = new StringBuilder();
+            using var des = new DESCryptoServiceProvider();
+            byte[] inputByteArray = Encoding.Default.GetBytes(strText);
+            des.Key = desKey;
+            des.IV = desIV;
+            MemoryStream ms = new MemoryStream();
+            using var cs = new CryptoStream(ms, des.CreateEncryptor(), CryptoStreamMode.Write);
+            cs.Write(inputByteArray, 0, inputByteArray.Length);
+            cs.FlushFinalBlock();
+            foreach (byte b in ms.ToArray())
+            {
+                ret.AppendFormat($"{b:X2}");
+            }
+
+            return ret.ToString();
+        }
+
         /// <summary>
         /// DES加密文件
         /// </summary>
@@ -111,6 +138,30 @@ namespace Masuit.Tools.Security
             long totlen = fin.Length;
             DES des = new DESCryptoServiceProvider();
             var encStream = new CryptoStream(fout, des.CreateEncryptor(byKey, iv), CryptoStreamMode.Write);
+            while (rdlen < totlen)
+            {
+                var len = fin.Read(bin, 0, 100);
+                encStream.Write(bin, 0, len);
+                rdlen += len;
+            }
+        }
+
+        /// <summary>
+        /// DES加密文件
+        /// </summary>
+        /// <param name="fin">文件输入流</param>
+        /// <param name="outFilePath">文件输出路径</param>
+        /// <param name="desKey"></param>
+        /// <param name="desIV"></param>
+        public static void DesEncrypt(this FileStream fin, string outFilePath, byte[] desKey, byte[] desIV)
+        {
+            using var fout = new FileStream(outFilePath, FileMode.OpenOrCreate, FileAccess.Write);
+            fout.SetLength(0);
+            byte[] bin = new byte[100];
+            long rdlen = 0;
+            long totlen = fin.Length;
+            DES des = new DESCryptoServiceProvider();
+            var encStream = new CryptoStream(fout, des.CreateEncryptor(desKey, desIV), CryptoStreamMode.Write);
             while (rdlen < totlen)
             {
                 var len = fin.Read(bin, 0, 100);
@@ -155,6 +206,30 @@ namespace Masuit.Tools.Security
         }
 
         /// <summary>
+        /// DES解密文件
+        /// </summary>
+        /// <param name="fin">输入文件流</param>
+        /// <param name="outFilePath">文件输出路径</param>
+        /// <param name="desKey"></param>
+        /// <param name="desIV"></param>
+        public static void DesDecrypt(this FileStream fin, string outFilePath, byte[] desKey, byte[] desIV)
+        {
+            using var fout = new FileStream(outFilePath, FileMode.OpenOrCreate, FileAccess.Write);
+            fout.SetLength(0);
+            byte[] bin = new byte[100];
+            long rdlen = 0;
+            long totlen = fin.Length;
+            using DES des = new DESCryptoServiceProvider();
+            var encStream = new CryptoStream(fout, des.CreateDecryptor(desKey, desIV), CryptoStreamMode.Write);
+            while (rdlen < totlen)
+            {
+                var len = fin.Read(bin, 0, 100);
+                encStream.Write(bin, 0, len);
+                rdlen += len;
+            }
+        }
+
+        /// <summary>
         ///     DES解密算法
         ///     密钥为8位
         /// </summary>
@@ -179,6 +254,33 @@ namespace Masuit.Tools.Security
 
             des.Key = Encoding.ASCII.GetBytes(sKey.Substring(0, 8));
             des.IV = Encoding.ASCII.GetBytes(sKey.Substring(0, 8));
+            using var cs = new CryptoStream(ms, des.CreateDecryptor(), CryptoStreamMode.Write);
+            cs.Write(inputByteArray, 0, inputByteArray.Length);
+            cs.FlushFinalBlock();
+            return Encoding.Default.GetString(ms.ToArray());
+        }
+
+        /// <summary>
+        ///     DES解密算法
+        ///     密钥为8位
+        /// </summary>
+        /// <param name="pToDecrypt">需要解密的字符串</param>
+        /// <param name="desKey"></param>
+        /// <param name="desIV"></param>
+        /// <returns>解密后的数据</returns>
+        public static string DesDecrypt(this string pToDecrypt, byte[] desKey, byte[] desIV)
+        {
+            var ms = new MemoryStream();
+            using var des = new DESCryptoServiceProvider();
+            var inputByteArray = new byte[pToDecrypt.Length / 2];
+            for (int x = 0; x < pToDecrypt.Length / 2; x++)
+            {
+                int i = Convert.ToInt32(pToDecrypt.Substring(x * 2, 2), 16);
+                inputByteArray[x] = (byte)i;
+            }
+
+            des.Key = desKey;
+            des.IV = desIV;
             using var cs = new CryptoStream(ms, des.CreateDecryptor(), CryptoStreamMode.Write);
             cs.Write(inputByteArray, 0, inputByteArray.Length);
             cs.FlushFinalBlock();
@@ -588,12 +690,23 @@ namespace Masuit.Tools.Security
         /// <returns>MD5字符串</returns>
         public static string MDFile(this string fileName)
         {
-            using var fs = File.Open(fileName, FileMode.Open, FileAccess.Read);
-            var array = new byte[fs.Length];
-            fs.Read(array, 0, (int)fs.Length);
+            using var fs = new BufferedStream(File.Open(fileName, FileMode.Open, FileAccess.Read), 1048576);
             using MD5 md5 = MD5.Create();
-            byte[] bytes = md5.ComputeHash(array);
+            byte[] bytes = md5.ComputeHash(fs);
             return bytes.Aggregate("", (current, b) => current + b.ToString("x2"));
+        }
+
+        /// <summary>
+        /// 计算文件的sha256
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static string SHA256(this Stream stream)
+        {
+            using var fs = new BufferedStream(stream, 1048576);
+            SHA256Managed sha = new SHA256Managed();
+            byte[] checksum = sha.ComputeHash(fs);
+            return BitConverter.ToString(checksum).Replace("-", string.Empty);
         }
 
         /// <summary>
@@ -603,9 +716,10 @@ namespace Masuit.Tools.Security
         /// <returns>MD5字符串</returns>
         public static string MDString(this Stream stream)
         {
-            var bytes = stream.ToArray();
-            using var md5 = MD5.Create();
-            var mdstr = md5.ComputeHash(bytes).Aggregate("", (current, b) => current + b.ToString("x2"));
+            using var fs = new BufferedStream(stream, 1048576);
+            using MD5 md5 = MD5.Create();
+            byte[] bytes = md5.ComputeHash(fs);
+            var mdstr = bytes.Aggregate("", (current, b) => current + b.ToString("x2"));
             stream.Position = 0;
             return mdstr;
         }

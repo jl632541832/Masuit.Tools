@@ -1,13 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <Import Project="..\SDKPulishNuget.targets" />
-
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;net461;net5</TargetFrameworks>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet />
-    <Version>2.4.3.2</Version>
+    <Version>2.4.3.5</Version>
     <Authors>懒得勤快</Authors>
     <Description>Masuit.Tools基础公共库</Description>
     <Copyright>懒得勤快，长空X</Copyright>
@@ -20,9 +17,9 @@
     <RepositoryType>Github</RepositoryType>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <FileVersion>2.4.3.2</FileVersion>
+    <FileVersion>2.4.3.5</FileVersion>
     <Company>ldqk.org</Company>
-    <AssemblyVersion>2.4.3.2</AssemblyVersion>
+    <AssemblyVersion>2.4.3.5</AssemblyVersion>
     <PackageLicenseUrl>https://github.com/ldqk/Masuit.Tools/blob/master/LICENSE</PackageLicenseUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
@@ -45,15 +42,14 @@
 
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="1.4.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.32" />
-    <PackageReference Include="HtmlSanitizer" Version="5.0.376" />
+    <PackageReference Include="HtmlSanitizer" Version="5.0.404" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="4.7.0" />
     <PackageReference Include="System.Management" Version="4.7.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
-        <PackageReference Include="SharpCompress" Version="0.28.1" />
+        <PackageReference Include="SharpCompress" Version="0.28.2" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
